@@ -27,7 +27,7 @@ export class UserService {
         },
       });
       this.rabbitClient.emit(`message_queue`, `Welcome`);
-      return user;
+      return { user: user, success: true };
     } catch (error) {
       // Error Handling in case the email is already taken
       if (error instanceof PrismaClientKnownRequestError) {
