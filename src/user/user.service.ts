@@ -1,15 +1,20 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    @Inject('MESSAGE_QUEUE') private rabbitClient: ClientProxy,
+  ) {}
   async addUser(dto: UserDto) {
     try {
       const user = await this.prismaService.user.create({
@@ -21,6 +26,7 @@ export class UserService {
           contact_number: dto.contactNumber,
         },
       });
+      this.rabbitClient.emit(`message_queue`, `Welcome`);
       return user;
     } catch (error) {
       // Error Handling in case the email is already taken
